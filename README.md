@@ -22,14 +22,23 @@ require the assets as you always do.
 
 #### >= 0.3.0
 
+require the base library:
+
 ```
 # require "ember-simple-auth"
+```
+
+plus any extension libraries you might need:
+
+```
 # require "ember-simple-auth-cookie-store"
 # require "ember-simple-auth-devise"
 # require "ember-simple-auth-oauth2"
 ```
 
 #### < 0.3.0
+
+require the library:
 
 ``` 
 # require "ember-simple-auth"
