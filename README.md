@@ -18,7 +18,22 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+require the assets as you always do.
+
+#### >= 0.3.0
+
+```
+# require "ember-simple-auth"
+# require "ember-simple-auth-cookie-store"
+# require "ember-simple-auth-devise"
+# require "ember-simple-auth-oauth2"
+```
+
+#### < 0.3.0
+
+``` 
+# require "ember-simple-auth"
+```
 
 ## Contributing
 
