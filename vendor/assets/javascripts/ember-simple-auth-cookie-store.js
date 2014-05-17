@@ -82,8 +82,8 @@ define("ember-simple-auth-cookie-store/stores/cookie",
       This store will trigger the `'updated'` event when any of its cookies is
       changed from another tab or window.
 
-      _The factory for this store is registered as `'session-store:cookie'` in
-      Ember's container.
+      _The factory for this store is registered as
+      `'ember-simple-auth-session-store:cookie'` in Ember's container._
 
       @class Cookie
       @namespace Stores
@@ -220,6 +220,6 @@ define("ember-simple-auth-cookie-store/stores/cookie",
 global.Ember.SimpleAuth.Stores.Cookie = requireModule('ember-simple-auth-cookie-store').default;
 
 global.Ember.SimpleAuth.initializeExtension(function(container, application, options) {
-  container.register('session-store:cookie', global.Ember.SimpleAuth.Stores.Cookie);
+  container.register('ember-simple-auth-session-store:cookie', global.Ember.SimpleAuth.Stores.Cookie);
 });
 })((typeof global !== 'undefined') ? global : window);
