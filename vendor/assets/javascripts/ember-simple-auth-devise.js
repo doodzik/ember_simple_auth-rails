@@ -54,20 +54,13 @@ var define, requireModule;
   requireModule.registry = registry;
 })();
 
-define("ember-simple-auth-devise", 
-  ["./ember-simple-auth-devise/authenticators/devise","./ember-simple-auth-devise/authorizers/devise","exports"],
+define("ember-simple-auth-devise/authenticators/devise", 
+  ["ember-simple-auth/authenticators/base","ember-simple-auth/utils/is_secure_url","exports"],
   function(__dependency1__, __dependency2__, __exports__) {
     "use strict";
-    var Authenticator = __dependency1__.Devise;
-    var Authorizer = __dependency2__.Devise;
+    var Base = __dependency1__["default"];
+    var isSecureUrl = __dependency2__["default"];
 
-    __exports__.Authenticator = Authenticator;
-    __exports__.Authorizer = Authorizer;
-  });
-define("ember-simple-auth-devise/authenticators/devise", 
-  ["exports"],
-  function(__exports__) {
-    "use strict";
     var global = (typeof window !== 'undefined') ? window : {},
         Ember = global.Ember;
 
@@ -87,7 +80,7 @@ define("ember-simple-auth-devise/authenticators/devise",
       @namespace Authenticators
       @extends Base
     */
-    var Devise = Ember.SimpleAuth.Authenticators.Base.extend({
+    __exports__["default"] = Base.extend({
       /**
         The endpoint on the server the authenticator acquires the auth token
         and email from.
@@ -173,7 +166,7 @@ define("ember-simple-auth-devise/authenticators/devise",
         @private
       */
       makeRequest: function(data, resolve, reject) {
-        if (!Ember.SimpleAuth.Utils.isSecureUrl(this.serverTokenEndpoint)) {
+        if (!isSecureUrl(this.serverTokenEndpoint)) {
           Ember.Logger.warn('Credentials are transmitted via an insecure connection - use HTTPS to keep them secure.');
         }
         return Ember.$.ajax({
@@ -187,13 +180,14 @@ define("ember-simple-auth-devise/authenticators/devise",
         });
       }
     });
-
-    __exports__.Devise = Devise;
   });
 define("ember-simple-auth-devise/authorizers/devise", 
-  ["exports"],
-  function(__exports__) {
+  ["ember-simple-auth/authorizers/base","ember-simple-auth/utils/is_secure_url","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
     "use strict";
+    var Base = __dependency1__["default"];
+    var isSecureUrl = __dependency2__["default"];
+
     var global = (typeof window !== 'undefined') ? window : {},
         Ember = global.Ember;
 
@@ -213,7 +207,7 @@ define("ember-simple-auth-devise/authorizers/devise",
       @namespace Authorizers
       @extends Base
     */
-    var Devise = Ember.SimpleAuth.Authorizers.Base.extend({
+    __exports__["default"] = Base.extend({
       /**
         Authorizes an XHR request by sending the `user_token` and `user_email`
         properties from the session in the `Authorization` header:
@@ -231,7 +225,7 @@ define("ember-simple-auth-devise/authorizers/devise",
         var userToken = this.get('session.user_token');
         var userEmail = this.get('session.user_email');
         if (this.get('session.isAuthenticated') && !Ember.isEmpty(userToken) && !Ember.isEmpty(userEmail)) {
-          if (!Ember.SimpleAuth.Utils.isSecureUrl(requestOptions.url)) {
+          if (!isSecureUrl(requestOptions.url)) {
             Ember.Logger.warn('Credentials are transmitted via an insecure connection - use HTTPS to keep them secure.');
           }
           var authData = 'token="' + userToken + '", user_email="' + userEmail + '"';
@@ -239,13 +233,22 @@ define("ember-simple-auth-devise/authorizers/devise",
         }
       }
     });
-
-    __exports__.Devise = Devise;
   });
-var devise = requireModule('ember-simple-auth-devise');
+define('ember-simple-auth/authenticators/base',  ['exports'], function(__exports__) {
+  __exports__['default'] = global.Ember.SimpleAuth.Authenticators.Base;
+});
+define('ember-simple-auth/authorizers/base',  ['exports'], function(__exports__) {
+  __exports__['default'] = global.Ember.SimpleAuth.Authorizers.Base;
+});
+define('ember-simple-auth/utils/is_secure_url',  ['exports'], function(__exports__) {
+  __exports__['default'] = global.Ember.SimpleAuth.Utils.isSecureUrl;
+});
 
-global.Ember.SimpleAuth.Authenticators.Devise = devise.Authenticator;
-global.Ember.SimpleAuth.Authorizers.Devise    = devise.Authorizer;
+var Authenticator = requireModule('ember-simple-auth-devise/authenticators/devise').default;
+var Authorizer    = requireModule('ember-simple-auth-devise/authorizers/devise').default;
+
+global.Ember.SimpleAuth.Authenticators.Devise = Authenticator;
+global.Ember.SimpleAuth.Authorizers.Devise    = Authorizer;
 
 global.Ember.SimpleAuth.initializeExtension(function(container, application, options) {
   container.register('ember-simple-auth-authorizer:devise', global.Ember.SimpleAuth.Authorizers.Devise);
