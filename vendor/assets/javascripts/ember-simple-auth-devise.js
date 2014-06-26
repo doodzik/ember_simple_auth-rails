@@ -54,12 +54,13 @@ var define, requireModule;
   requireModule.registry = registry;
 })();
 
-define("ember-simple-auth-devise/authenticators/devise", 
-  ["ember-simple-auth/authenticators/base","ember-simple-auth/utils/is_secure_url","exports"],
-  function(__dependency1__, __dependency2__, __exports__) {
+define("simple-auth-devise/authenticators/devise", 
+  ["simple-auth/authenticators/base","simple-auth/utils/is-secure-url","simple-auth/utils/get-global-config","exports"],
+  function(__dependency1__, __dependency2__, __dependency3__, __exports__) {
     "use strict";
     var Base = __dependency1__["default"];
     var isSecureUrl = __dependency2__["default"];
+    var getGlobalConfig = __dependency3__["default"];
 
     var global = (typeof window !== 'undefined') ? window : {},
         Ember = global.Ember;
@@ -74,16 +75,26 @@ define("ember-simple-auth-devise/authenticators/devise",
       [discussion here](https://gist.github.com/josevalim/fb706b1e933ef01e4fb6).
 
       _The factory for this authenticator is registered as
-      `'ember-simple-auth-authenticator:devise'` in Ember's container._
+      `'simple-auth-authenticator:devise'` in Ember's container._
 
       @class Devise
-      @namespace Authenticators
+      @namespace SimpleAuth.Authenticators
+      @module simple-auth-devise/authenticators/devise
       @extends Base
     */
     __exports__["default"] = Base.extend({
       /**
         The endpoint on the server the authenticator acquires the auth token
         and email from.
+
+        This value can be configured via the global environment object:
+
+        ```js
+        window.ENV = window.ENV || {};
+        window.ENV['simple-auth-devise'] = {
+          serverTokenEndpoint: '/some/other/endpoint'
+        }
+        ```
 
         @property serverTokenEndpoint
         @type String
@@ -94,11 +105,30 @@ define("ember-simple-auth-devise/authenticators/devise",
       /**
         The devise resource name
 
+        This value can be configured via the global environment object:
+
+        ```js
+        window.ENV = window.ENV || {};
+        window.ENV['simple-auth-devise'] = {
+          resourceName: 'account'
+        }
+        ```
+
         @property resourceName
         @type String
         @default 'user'
       */
       resourceName: 'user',
+
+      /**
+        @method init
+        @private
+      */
+      init: function() {
+        var globalConfig         = getGlobalConfig('simple-auth-devise');
+        this.serverTokenEndpoint = globalConfig.serverTokenEndpoint || this.serverTokenEndpoint;
+        this.resourceName        = globalConfig.resourceName || this.resourceName;
+      },
 
       /**
         Restores the session from a set of session properties; __will return a
@@ -121,11 +151,12 @@ define("ember-simple-auth-devise/authenticators/devise",
 
       /**
         Authenticates the session with the specified `credentials`; the credentials
-        are `POST`ed to the `serverTokenEndpoint` and if they are valid the server
-        returns an auth token and email in response . __If the credentials are
-        valid and authentication succeeds, a promise that resolves with the
-        server's response is returned__, otherwise a promise that rejects with the
-        error is returned.
+        are `POST`ed to the
+        [`Authenticators.Devise#serverTokenEndpoint`](#SimpleAuth-Authenticators-Devise-serverTokenEndpoint)
+        and if they are valid the server returns an auth token and email in
+        response. __If the credentials are valid and authentication succeeds, a
+        promise that resolves with the server's response is returned__, otherwise a
+        promise that rejects with the server error is returned.
 
         @method authenticate
         @param {Object} options The credentials to authenticate the session with
@@ -181,8 +212,8 @@ define("ember-simple-auth-devise/authenticators/devise",
       }
     });
   });
-define("ember-simple-auth-devise/authorizers/devise", 
-  ["ember-simple-auth/authorizers/base","ember-simple-auth/utils/is_secure_url","exports"],
+define("simple-auth-devise/authorizers/devise", 
+  ["simple-auth/authorizers/base","simple-auth/utils/is-secure-url","exports"],
   function(__dependency1__, __dependency2__, __exports__) {
     "use strict";
     var Base = __dependency1__["default"];
@@ -201,10 +232,11 @@ define("ember-simple-auth-devise/authorizers/devise",
       see the README for more information.
 
       _The factory for this authorizer is registered as
-      `'ember-simple-auth-authorizer:devise'` in Ember's container._
+      `'simple-auth-authorizer:devise'` in Ember's container._
 
       @class Devise
-      @namespace Authorizers
+      @namespace SimpleAuth.Authorizers
+      @module simple-auth-devise/authorizers/devise
       @extends Base
     */
     __exports__["default"] = Base.extend({
@@ -234,24 +266,57 @@ define("ember-simple-auth-devise/authorizers/devise",
       }
     });
   });
-define('ember-simple-auth/authenticators/base',  ['exports'], function(__exports__) {
-  __exports__['default'] = global.Ember.SimpleAuth.Authenticators.Base;
+define("simple-auth-devise/ember", 
+  ["./initializer"],
+  function(__dependency1__) {
+    "use strict";
+    var global = (typeof window !== 'undefined') ? window : {},
+        Ember = global.Ember;
+
+    var initializer = __dependency1__["default"];
+
+    Ember.onLoad('Ember.Application', function(Application) {
+      Application.initializer(initializer);
+    });
+  });
+define("simple-auth-devise/initializer", 
+  ["simple-auth-devise/authenticators/devise","simple-auth-devise/authorizers/devise","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
+    "use strict";
+    var global = (typeof window !== 'undefined') ? window : {},
+        Ember = global.Ember;
+
+    var Authenticator = __dependency1__["default"];
+    var Authorizer = __dependency2__["default"];
+
+    __exports__["default"] = {
+      name:       'simple-auth-devise',
+      before:     'simple-auth',
+      initialize: function(container, application) {
+        container.register('simple-auth-authorizer:devise', Authorizer);
+        container.register('simple-auth-authenticator:devise', Authenticator);
+      }
+    };
+  });
+define('simple-auth/authenticators/base',  ['exports'], function(__exports__) {
+  __exports__['default'] = global.SimpleAuth.Authenticators.Base;
 });
-define('ember-simple-auth/authorizers/base',  ['exports'], function(__exports__) {
-  __exports__['default'] = global.Ember.SimpleAuth.Authorizers.Base;
+define('simple-auth/authorizers/base',  ['exports'], function(__exports__) {
+  __exports__['default'] = global.SimpleAuth.Authorizers.Base;
 });
-define('ember-simple-auth/utils/is_secure_url',  ['exports'], function(__exports__) {
-  __exports__['default'] = global.Ember.SimpleAuth.Utils.isSecureUrl;
+define('simple-auth/utils/is-secure-url',  ['exports'], function(__exports__) {
+  __exports__['default'] = global.SimpleAuth.Utils.isSecureUrl;
+});
+define('simple-auth/utils/get-global-config',  ['exports'], function(__exports__) {
+  __exports__['default'] = global.SimpleAuth.Utils.getGlobalConfig;
 });
 
-var Authenticator = requireModule('ember-simple-auth-devise/authenticators/devise').default;
-var Authorizer    = requireModule('ember-simple-auth-devise/authorizers/devise').default;
+var initializer   = requireModule('simple-auth-devise/initializer').default;
+var Authenticator = requireModule('simple-auth-devise/authenticators/devise').default;
+var Authorizer    = requireModule('simple-auth-devise/authorizers/devise').default;
 
-global.Ember.SimpleAuth.Authenticators.Devise = Authenticator;
-global.Ember.SimpleAuth.Authorizers.Devise    = Authorizer;
+global.SimpleAuth.Authenticators.Devise = Authenticator;
+global.SimpleAuth.Authorizers.Devise    = Authorizer;
 
-global.Ember.SimpleAuth.initializeExtension(function(container, application, options) {
-  container.register('ember-simple-auth-authorizer:devise', global.Ember.SimpleAuth.Authorizers.Devise);
-  container.register('ember-simple-auth-authenticator:devise', global.Ember.SimpleAuth.Authenticators.Devise);
-});
+requireModule('simple-auth-devise/ember');
 })((typeof global !== 'undefined') ? global : window);
