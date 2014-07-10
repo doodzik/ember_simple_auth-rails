@@ -32,6 +32,7 @@ task :update do
 end
 
 task :publish do
+	`git push --tags`
 	`git push --follow-tags`
 	version = `git tag`.split.last
 	`gem push ember_simple_auth-rails-#{version}.gem`
