@@ -20,10 +20,10 @@ task :update do
 		FileUtils.remove_dir "ember-simple-auth", true	
 		
 		version_file = "lib/ember_simple_auth/rails/version.rb";
-		File.open(version_file, 'w') do |out|
-			  out << File.open(version_file).read.gsub(/(\d+)\.(\d+)\.(\d+)/, "version")
-		end
-
+		new_content = File.open(version_file, "r") { |out| out.read.gsub(/(\d+)\.(\d+)\.(\d+)/, version) }
+		File.open(version_file, 'w') { |file| file.write(new_content) }
+		
+		`git add -A`
 		`git commit -am 'update to #{version}'`
 		`git tag #{version}`
 
