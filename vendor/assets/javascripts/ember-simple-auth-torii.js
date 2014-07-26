@@ -1,5 +1,7 @@
 (function(global) {
 
+Ember.libraries.register('Ember Simple Auth Torii', '0.6.4');
+
 var define, requireModule;
 
 (function() {
@@ -59,9 +61,6 @@ define("simple-auth-torii/authenticators/torii",
   function(__dependency1__, __exports__) {
     "use strict";
     var Base = __dependency1__["default"];
-
-    var global = (typeof window !== 'undefined') ? window : {},
-        Ember = global.Ember;
 
     /**
       Authenticator that wraps the
@@ -165,9 +164,6 @@ define("simple-auth-torii/ember",
   ["./initializer"],
   function(__dependency1__) {
     "use strict";
-    var global = (typeof window !== 'undefined') ? window : {},
-        Ember = global.Ember;
-
     var initializer = __dependency1__["default"];
 
     Ember.onLoad('Ember.Application', function(Application) {
