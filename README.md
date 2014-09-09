@@ -1,6 +1,12 @@
 # EmberSimpleAuth::Rails
 
-TODO: Write a gem description
+ember-simple-auth for the assets pipeline
+
+# IF YOU WANT A NEW VERSION RUN 
+```bash
+$ rake update
+```
+# AND SUBMIT A PULL REQUEST
 
 ## Installation
 
