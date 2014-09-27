@@ -1,6 +1,6 @@
 (function(global) {
 
-Ember.libraries.register('Ember Simple Auth Devise', '0.6.4');
+Ember.libraries.register('Ember Simple Auth Devise', '0.6.6');
 
 var define, requireModule;
 
@@ -301,9 +301,9 @@ define('simple-auth/utils/get-global-config',  ['exports'], function(__exports__
   __exports__['default'] = global.SimpleAuth.Utils.getGlobalConfig;
 });
 
-var initializer   = requireModule('simple-auth-devise/initializer').default;
-var Authenticator = requireModule('simple-auth-devise/authenticators/devise').default;
-var Authorizer    = requireModule('simple-auth-devise/authorizers/devise').default;
+var initializer   = requireModule('simple-auth-devise/initializer')['default'];
+var Authenticator = requireModule('simple-auth-devise/authenticators/devise')['default'];
+var Authorizer    = requireModule('simple-auth-devise/authorizers/devise')['default'];
 
 global.SimpleAuth.Authenticators.Devise = Authenticator;
 global.SimpleAuth.Authorizers.Devise    = Authorizer;

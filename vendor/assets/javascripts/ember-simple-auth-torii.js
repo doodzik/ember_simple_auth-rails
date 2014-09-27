@@ -1,6 +1,6 @@
 (function(global) {
 
-Ember.libraries.register('Ember Simple Auth Torii', '0.6.4');
+Ember.libraries.register('Ember Simple Auth Torii', '0.6.6');
 
 var define, requireModule;
 
@@ -191,7 +191,7 @@ define('simple-auth/authenticators/base',  ['exports'], function(__exports__) {
   __exports__['default'] = global.SimpleAuth.Authenticators.Base;
 });
 
-var Authenticator = requireModule('simple-auth-torii/authenticators/torii').default;
+var Authenticator = requireModule('simple-auth-torii/authenticators/torii')['default'];
 
 global.SimpleAuth.Authenticators.Torii = Authenticator;
 

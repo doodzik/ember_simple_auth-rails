@@ -1,6 +1,6 @@
 (function(global) {
 
-Ember.libraries.register('Ember Simple Auth Testing', '0.6.4');
+Ember.libraries.register('Ember Simple Auth Testing', '0.6.6');
 
 var define, requireModule;
 
@@ -127,11 +127,10 @@ define("simple-auth-testing/test-helpers",
 define('simple-auth/authenticators/base',  ['exports'], function(__exports__) {
   __exports__['default'] = global.SimpleAuth.Authenticators.Base;
 });
+define('simple-auth/configuration',  ['exports'], function(__exports__) {
+  __exports__['default'] = global.SimpleAuth.Configuration;
+});
 
 requireModule('simple-auth-testing/ember');
-
-if (global.Ember.testing) {
-  requireModule('simple-auth/test-helpers/authenticate-session');
-  requireModule('simple-auth/test-helpers/invalidate-session');
-}
+requireModule('simple-auth-testing/test-helpers');
 })((typeof global !== 'undefined') ? global : window);

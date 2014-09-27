@@ -1,6 +1,6 @@
 (function(global) {
 
-Ember.libraries.register('Ember Simple Auth Cookie Store', '0.6.4');
+Ember.libraries.register('Ember Simple Auth Cookie Store', '0.6.6');
 
 var define, requireModule;
 
@@ -243,9 +243,10 @@ define("simple-auth-cookie-store/stores/cookie",
         @private
       */
       write: function(value, expiration) {
+        var path = '; path=/';
         var expires = Ember.isEmpty(expiration) ? '' : '; expires=' + new Date(expiration).toUTCString();
         var secure  = !!this._secureCookies ? ';secure' : '';
-        document.cookie = this.cookieName + '=' + encodeURIComponent(value) + expires + secure;
+        document.cookie = this.cookieName + '=' + encodeURIComponent(value) + path + expires + secure;
       },
 
       /**
@@ -275,8 +276,8 @@ define('simple-auth/utils/get-global-config',  ['exports'], function(__exports__
   __exports__['default'] = global.SimpleAuth.Utils.getGlobalConfig;
 });
 
-var initializer = requireModule('simple-auth-cookie-store/initializer').default;
-var Cookie      = requireModule('simple-auth-cookie-store/stores/cookie').default;
+var initializer = requireModule('simple-auth-cookie-store/initializer')['default'];
+var Cookie      = requireModule('simple-auth-cookie-store/stores/cookie')['default'];
 
 global.SimpleAuth.Stores.Cookie = Cookie;
 
