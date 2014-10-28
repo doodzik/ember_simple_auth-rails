@@ -1,6 +1,6 @@
 (function(global) {
 
-Ember.libraries.register('Ember Simple Auth', '0.6.6');
+Ember.libraries.register('Ember Simple Auth', '0.6.7');
 
 var define, requireModule;
 
@@ -82,7 +82,7 @@ define("simple-auth/authenticators/base",
       __Custom authenticators have to be registered with Ember's dependency
       injection container__ so that the session can retrieve an instance, e.g.:
 
-      ```javascript
+      ```js
       import Base from 'simple-auth/authenticators/base';
 
       var CustomAuthenticator = Base.extend({
@@ -97,7 +97,7 @@ define("simple-auth/authenticators/base",
       });
       ```
 
-      ```javascript
+      ```js
       // app/controllers/login.js
       import AuthenticationControllerMixin from 'simple-auth/mixins/authentication-controller-mixin';
 
@@ -258,10 +258,22 @@ define("simple-auth/authorizers/base",
     });
   });
 define("simple-auth/configuration", 
-  ["./utils/get-global-config","exports"],
+  ["simple-auth/utils/load-config","exports"],
   function(__dependency1__, __exports__) {
     "use strict";
-    var getGlobalConfig = __dependency1__["default"];
+    var loadConfig = __dependency1__["default"];
+
+    var defaults = {
+      authenticationRoute:         'login',
+      routeAfterAuthentication:    'index',
+      routeIfAlreadyAuthenticated: 'index',
+      sessionPropertyName:         'session',
+      authorizer:                  null,
+      session:                     'simple-auth-session:main',
+      store:                       'simple-auth-session-store:local-storage',
+      crossOriginWhitelist:        [],
+      applicationRootUrl:          null
+    };
 
     /**
       Ember Simple Auth's configuration object.
@@ -269,7 +281,7 @@ define("simple-auth/configuration",
       To change any of these values, define a global environment object for Ember
       Simple Auth and define the values there:
 
-      ```javascript
+      ```js
       window.ENV = window.ENV || {};
       window.ENV['simple-auth'] = {
         authenticationRoute: 'sign-in'
@@ -290,7 +302,7 @@ define("simple-auth/configuration",
         @type String
         @default 'login'
       */
-      authenticationRoute: 'login',
+      authenticationRoute: defaults.authenticationRoute,
 
       /**
         The route to transition to after successful authentication.
@@ -301,7 +313,7 @@ define("simple-auth/configuration",
         @type String
         @default 'index'
       */
-      routeAfterAuthentication: 'index',
+      routeAfterAuthentication: defaults.routeAfterAuthentication,
 
       /**
         The route to transition to if a route that implements
@@ -314,7 +326,7 @@ define("simple-auth/configuration",
         @type String
         @default 'index'
       */
-      routeIfAlreadyAuthenticated: 'index',
+      routeIfAlreadyAuthenticated: defaults.routeIfAlreadyAuthenticated,
 
       /**
         The name of the property that the session is injected with into routes and
@@ -326,7 +338,7 @@ define("simple-auth/configuration",
         @type String
         @default 'session'
       */
-      sessionPropertyName: 'session',
+      sessionPropertyName: defaults.sessionPropertyName,
 
       /**
         The authorizer factory to use as it is registered with Ember's container,
@@ -341,7 +353,7 @@ define("simple-auth/configuration",
         @type String
         @default null
       */
-      authorizer: null,
+      authorizer: defaults.authorizer,
 
       /**
         The session factory to use as it is registered with Ember's container,
@@ -354,7 +366,7 @@ define("simple-auth/configuration",
         @type String
         @default 'simple-auth-session:main'
       */
-      session: 'simple-auth-session:main',
+      session: defaults.session,
 
       /**
         The store factory to use as it is registered with Ember's container, see
@@ -366,7 +378,7 @@ define("simple-auth/configuration",
         @type String
         @default simple-auth-session-store:local-storage
       */
-      store: 'simple-auth-session-store:local-storage',
+      store: defaults.store,
 
       /**
         Ember Simple Auth will never authorize requests going to a different origin
@@ -381,30 +393,21 @@ define("simple-auth/configuration",
         @type Array
         @default []
       */
-      crossOriginWhitelist: [],
+      crossOriginWhitelist: defaults.crossOriginWhitelist,
 
       /**
         @property applicationRootUrl
         @private
       */
-      applicationRootUrl: null,
+      applicationRootUrl: defaults.applicationRootUrl,
 
       /**
         @method load
         @private
       */
-      load: function(container) {
-        var globalConfig              = getGlobalConfig('simple-auth');
-        this.authenticationRoute      = globalConfig.authenticationRoute || this.authenticationRoute;
-        this.routeAfterAuthentication = globalConfig.routeAfterAuthentication || this.routeAfterAuthentication;
-        this.routeIfAlreadyAuthenticated     = globalConfig.routeIfAlreadyAuthenticated || this.routeIfAlreadyAuthenticated;
-        this.sessionPropertyName      = globalConfig.sessionPropertyName || this.sessionPropertyName;
-        this.authorizer               = globalConfig.authorizer || this.authorizer;
-        this.session                  = globalConfig.session || this.session;
-        this.store                    = globalConfig.store || this.store;
-        this.crossOriginWhitelist     = globalConfig.crossOriginWhitelist || this.crossOriginWhitelist;
-        this.applicationRootUrl       = container.lookup('router:main').get('rootURL') || '/';
-      }
+      load: loadConfig(defaults, function(container, config) {
+        this.applicationRootUrl = container.lookup('router:main').get('rootURL') || '/';
+      })
     };
   });
 define("simple-auth/ember", 
@@ -418,14 +421,18 @@ define("simple-auth/ember",
     });
   });
 define("simple-auth/initializer", 
-  ["./setup","exports"],
-  function(__dependency1__, __exports__) {
+  ["./configuration","./utils/get-global-config","./setup","exports"],
+  function(__dependency1__, __dependency2__, __dependency3__, __exports__) {
     "use strict";
-    var setup = __dependency1__["default"];
+    var Configuration = __dependency1__["default"];
+    var getGlobalConfig = __dependency2__["default"];
+    var setup = __dependency3__["default"];
 
     __exports__["default"] = {
       name:       'simple-auth',
       initialize: function(container, application) {
+        var config = getGlobalConfig('simple-auth');
+        Configuration.load(container, config);
         setup(container, application);
       }
     };
@@ -471,7 +478,7 @@ define("simple-auth/mixins/application-route-mixin",
       be automatically translated into route actions but would have to be handled
       inidivially, e.g. in an initializer:
 
-      ```javascript
+      ```js
       Ember.Application.initializer({
         name:       'authentication',
         after:      'simple-auth',
@@ -531,7 +538,7 @@ define("simple-auth/mixins/application-route-mixin",
           because it opens a new window to handle authentication there), this is
           the action to override, e.g.:__
 
-          ```javascript
+          ```js
           App.ApplicationRoute = Ember.Route.extend(SimpleAuth.ApplicationRouteMixin, {
             actions: {
               authenticateSession: function() {
@@ -576,7 +583,7 @@ define("simple-auth/mixins/application-route-mixin",
 
           It can be overridden to display error messages etc.:
 
-          ```javascript
+          ```js
           App.ApplicationRoute = Ember.Route.extend(SimpleAuth.ApplicationRouteMixin, {
             actions: {
               sessionAuthenticationFailed: function(error) {
@@ -658,7 +665,7 @@ define("simple-auth/mixins/authenticated-route-mixin",
       [`Configuration.authenticationRoute`](#SimpleAuth-Configuration-authenticationRoute)
       if it is not.
 
-      ```javascript
+      ```js
       // app/routes/protected.js
       import AuthenticatedRouteMixin from 'simple-auth/mixins/authenticated-route-mixin';
 
@@ -821,7 +828,7 @@ define("simple-auth/mixins/unauthenticated-route-mixin",
       [`Configuration.routeIfAlreadyAuthenticated`](#SimpleAuth-Configuration-routeIfAlreadyAuthenticated),
       which defaults to `'index'`.
 
-      ```javascript
+      ```js
       // app/routes/login.js
       import UnauthenticatedRouteMixin from 'simple-auth/mixins/unauthenticated-route-mixin';
 
@@ -881,7 +888,7 @@ define("simple-auth/session",
       method with the authenticator factory to use as well as any options the
       authenticator needs to authenticate the session:
 
-      ```javascript
+      ```js
       this.get('session').authenticate('authenticator:custom', { some: 'option' }).then(function() {
         // authentication was successful
       }, function() {
@@ -1242,7 +1249,6 @@ define("simple-auth/setup",
       @private
     **/
     __exports__["default"] = function(container, application) {
-      Configuration.load(container);
       application.deferReadiness();
       registerFactories(container);
 
@@ -1547,7 +1553,7 @@ define("simple-auth/utils/get-global-config",
     var global = (typeof window !== 'undefined') ? window : {};
 
     __exports__["default"] = function(scope) {
-      return(global.ENV || {})[scope] || {};
+      return Ember.get(global, 'ENV.' + scope) || {};
     }
   });
 define("simple-auth/utils/is-secure-url", 
@@ -1565,6 +1571,24 @@ define("simple-auth/utils/is-secure-url",
       return link.protocol == 'https:';
     }
   });
+define("simple-auth/utils/load-config", 
+  ["exports"],
+  function(__exports__) {
+    "use strict";
+    __exports__["default"] = function(defaults, callback) {
+      return function(container, config) {
+        var wrappedConfig = Ember.Object.create(config);
+        for (var property in this) {
+          if (this.hasOwnProperty(property) && Ember.typeOf(this[property]) !== 'function') {
+            this[property] = wrappedConfig.getWithDefault(property, defaults[property]);
+          }
+        }
+        if (callback) {
+          callback.apply(this, [container, config]);
+        }
+      };
+    }
+  });
 var initializer                   = requireModule('simple-auth/initializer')['default'];
 var Configuration                 = requireModule('simple-auth/configuration')['default'];
 var Session                       = requireModule('simple-auth/session')['default'];
@@ -1576,6 +1600,7 @@ var EphemeralStore                = requireModule('simple-auth/stores/ephemeral'
 var flatObjectsAreEqual           = requireModule('simple-auth/utils/flat-objects-are-equal')['default'];
 var isSecureUrl                   = requireModule('simple-auth/utils/is-secure-url')['default'];
 var getGlobalConfig               = requireModule('simple-auth/utils/get-global-config')['default'];
+var loadConfig                    = requireModule('simple-auth/utils/load-config')['default'];
 var ApplicationRouteMixin         = requireModule('simple-auth/mixins/application-route-mixin')['default'];
 var AuthenticatedRouteMixin       = requireModule('simple-auth/mixins/authenticated-route-mixin')['default'];
 var AuthenticationControllerMixin = requireModule('simple-auth/mixins/authentication-controller-mixin')['default'];
@@ -1604,7 +1629,8 @@ global.SimpleAuth = {
   Utils: {
     flatObjectsAreEqual: flatObjectsAreEqual,
     isSecureUrl:         isSecureUrl,
-    getGlobalConfig:     getGlobalConfig
+    getGlobalConfig:     getGlobalConfig,
+    loadConfig:          loadConfig
   },
 
   ApplicationRouteMixin:         ApplicationRouteMixin,
@@ -1616,5 +1642,5 @@ global.SimpleAuth = {
 
 requireModule('simple-auth/ember');
 
-Ember.libraries.register('Ember Simple Auth', '0.6.6');
+Ember.libraries.register('Ember Simple Auth', '0.6.7');
 })((typeof global !== 'undefined') ? global : window);
