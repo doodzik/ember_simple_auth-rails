@@ -2,7 +2,7 @@
 
 ember-simple-auth for the assets pipeline
 
-# IF YOU WANT A NEW VERSION RUN 
+# IF YOU WANT A NEW VERSION RUN
 ```bash
 $ rake update
 ```
@@ -31,28 +31,28 @@ require the assets as you always do.
 require the base library:
 
 ```
-# require "ember-simple-auth"
+//= require "ember-simple-auth"
 ```
 
 plus any extension libraries you might need:
 
 ```
-# require "ember-simple-auth-cookie-store"
-# require "ember-simple-auth-devise"
-# require "ember-simple-auth-oauth2"
+//= require "ember-simple-auth-cookie-store"
+//= require "ember-simple-auth-devise"
+//= require "ember-simple-auth-oauth2"
 ```
 
 #### < 0.3.0
 
 require the library:
 
-``` 
-# require "ember-simple-auth"
+```
+//= require "ember-simple-auth"
 ```
 
 ## Contributing
 
-1. Fork it ( http://github.com/<my-github-username>/ember_simple_auth-rails/fork )
+1. Fork it ( http://github.com/doodzik/ember_simple_auth-rails/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
