@@ -1,6 +1,6 @@
 (function(global) {
 
-Ember.libraries.register('Ember Simple Auth Devise', '0.6.7');
+Ember.libraries.register('Ember Simple Auth Devise', '0.7.0');
 
 var define, requireModule;
 
@@ -57,12 +57,11 @@ var define, requireModule;
 })();
 
 define("simple-auth-devise/authenticators/devise", 
-  ["simple-auth/authenticators/base","simple-auth/utils/is-secure-url","./../configuration","exports"],
-  function(__dependency1__, __dependency2__, __dependency3__, __exports__) {
+  ["simple-auth/authenticators/base","./../configuration","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
     "use strict";
     var Base = __dependency1__["default"];
-    var isSecureUrl = __dependency2__["default"];
-    var Configuration = __dependency3__["default"];
+    var Configuration = __dependency2__["default"];
 
     /**
       Authenticator that works with the Ruby gem
@@ -108,12 +107,38 @@ define("simple-auth-devise/authenticators/devise",
       resourceName: 'user',
 
       /**
+        The token attribute name.
+
+        This value can be configured via
+        [`SimpleAuth.Configuration.Devise#tokenAttributeName`](#SimpleAuth-Configuration-Devise-tokenAttributeName).
+
+        @property tokenAttributeName
+        @type String
+        @default 'user_token'
+      */
+      tokenAttributeName: 'user_token',
+
+      /**
+        The identification attribute name.
+
+        This value can be configured via
+        [`SimpleAuth.Configuration.Devise#identificationAttributeName`](#SimpleAuth-Configuration-Devise-identificationAttributeName).
+
+        @property identificationAttributeName
+        @type String
+        @default 'user_email'
+      */
+      identificationAttributeName: 'user_email',
+
+      /**
         @method init
         @private
       */
       init: function() {
-        this.serverTokenEndpoint = Configuration.serverTokenEndpoint;
-        this.resourceName        = Configuration.resourceName;
+        this.serverTokenEndpoint          = Configuration.serverTokenEndpoint;
+        this.resourceName                 = Configuration.resourceName;
+        this.tokenAttributeName           = Configuration.tokenAttributeName;
+        this.identificationAttributeName  = Configuration.identificationAttributeName;
       },
 
       /**
@@ -126,8 +151,10 @@ define("simple-auth-devise/authenticators/devise",
         @return {Ember.RSVP.Promise} A promise that when it resolves results in the session being authenticated
       */
       restore: function(properties) {
+        var _this            = this;
+        var propertiesObject = Ember.Object.create(properties);
         return new Ember.RSVP.Promise(function(resolve, reject) {
-          if (!Ember.isEmpty(properties.user_token) && !Ember.isEmpty(properties.user_email)) {
+          if (!Ember.isEmpty(propertiesObject.get(_this.tokenAttributeName)) && !Ember.isEmpty(propertiesObject.get(_this.identificationAttributeName))) {
             resolve(properties);
           } else {
             reject();
@@ -183,9 +210,6 @@ define("simple-auth-devise/authenticators/devise",
         @private
       */
       makeRequest: function(data, resolve, reject) {
-        if (!isSecureUrl(this.serverTokenEndpoint)) {
-          Ember.Logger.warn('Credentials are transmitted via an insecure connection - use HTTPS to keep them secure.');
-        }
         return Ember.$.ajax({
           url:        this.serverTokenEndpoint,
           type:       'POST',
@@ -199,11 +223,11 @@ define("simple-auth-devise/authenticators/devise",
     });
   });
 define("simple-auth-devise/authorizers/devise", 
-  ["simple-auth/authorizers/base","simple-auth/utils/is-secure-url","exports"],
+  ["simple-auth/authorizers/base","./../configuration","exports"],
   function(__dependency1__, __dependency2__, __exports__) {
     "use strict";
     var Base = __dependency1__["default"];
-    var isSecureUrl = __dependency2__["default"];
+    var Configuration = __dependency2__["default"];
 
     /**
       Authenticator that works with the Ruby gem
@@ -224,11 +248,35 @@ define("simple-auth-devise/authorizers/devise",
     */
     __exports__["default"] = Base.extend({
       /**
+        The token attribute name.
+
+        This value can be configured via
+        [`SimpleAuth.Configuration.Devise#tokenAttributeName`](#SimpleAuth-Configuration-Devise-tokenAttributeName).
+
+        @property tokenAttributeName
+        @type String
+        @default 'user_token'
+      */
+      tokenAttributeName: 'user_token',
+
+      /**
+        The identification attribute name.
+
+        This value can be configured via
+        [`SimpleAuth.Configuration.Devise#identificationAttributeName`](#SimpleAuth-Configuration-Devise-identificationAttributeName).
+
+        @property identificationAttributeName
+        @type String
+        @default 'user_email'
+      */
+      identificationAttributeName: 'user_email',
+
+      /**
         Authorizes an XHR request by sending the `user_token` and `user_email`
         properties from the session in the `Authorization` header:
 
         ```
-        Authorization: Token token="<user_token>", user_email="<user_email>"
+        Authorization: Token <tokenAttributeName>="<token>", <identificationAttributeName>="<user identification>"
         ```
 
         @method authorize
@@ -236,14 +284,20 @@ define("simple-auth-devise/authorizers/devise",
         @param {Object} requestOptions The options as provided to the `$.ajax` method (see http://api.jquery.com/jQuery.ajaxPrefilter/)
       */
 
+      /**
+        @method init
+        @private
+      */
+      init: function() {
+        this.tokenAttributeName          = Configuration.tokenAttributeName;
+        this.identificationAttributeName = Configuration.identificationAttributeName;
+      },
+
       authorize: function(jqXHR, requestOptions) {
-        var userToken = this.get('session.user_token');
-        var userEmail = this.get('session.user_email');
-        if (this.get('session.isAuthenticated') && !Ember.isEmpty(userToken) && !Ember.isEmpty(userEmail)) {
-          if (!isSecureUrl(requestOptions.url)) {
-            Ember.Logger.warn('Credentials are transmitted via an insecure connection - use HTTPS to keep them secure.');
-          }
-          var authData = 'token="' + userToken + '", user_email="' + userEmail + '"';
+        var userToken          = this.get('session').get(this.tokenAttributeName);
+        var userIdentification = this.get('session').get(this.identificationAttributeName);
+        if (this.get('session.isAuthenticated') && !Ember.isEmpty(userToken) && !Ember.isEmpty(userIdentification)) {
+          var authData = this.tokenAttributeName + '="' + userToken + '", ' + this.identificationAttributeName + '="' + userIdentification + '"';
           jqXHR.setRequestHeader('Authorization', 'Token ' + authData);
         }
       }
@@ -256,19 +310,20 @@ define("simple-auth-devise/configuration",
     var loadConfig = __dependency1__["default"];
 
     var defaults = {
-      serverTokenEndpoint: '/users/sign_in',
-      resourceName:        'user'
+      serverTokenEndpoint:         '/users/sign_in',
+      resourceName:                'user',
+      tokenAttributeName:          'user_token',
+      identificationAttributeName: 'user_email'
     };
 
     /**
       Ember Simple Auth Device's configuration object.
 
-      To change any of these values, define a global environment object for Ember
-      Simple Auth and define the values there:
+      To change any of these values, set them on the application's environment
+      object:
 
       ```js
-      window.ENV = window.ENV || {};
-      window.ENV['simple-auth-devise'] = {
+      ENV['simple-auth-devise'] = {
         serverTokenEndpoint: '/some/other/endpoint'
       }
       ```
@@ -300,6 +355,28 @@ define("simple-auth-devise/configuration",
         @default 'user'
       */
       resourceName: defaults.resourceName,
+
+      /**
+        The token attribute name.
+
+        @property tokenAttributeName
+        @readOnly
+        @static
+        @type String
+        @default 'user_token'
+      */
+      tokenAttributeName: defaults.tokenAttributeName,
+
+      /**
+        The email attribute name.
+
+        @property identificationAttributeName
+        @readOnly
+        @static
+        @type String
+        @default 'user_email'
+      */
+      identificationAttributeName: defaults.identificationAttributeName,
 
       /**
         @method load
@@ -343,9 +420,6 @@ define('simple-auth/authenticators/base',  ['exports'], function(__exports__) {
 });
 define('simple-auth/authorizers/base',  ['exports'], function(__exports__) {
   __exports__['default'] = global.SimpleAuth.Authorizers.Base;
-});
-define('simple-auth/utils/is-secure-url',  ['exports'], function(__exports__) {
-  __exports__['default'] = global.SimpleAuth.Utils.isSecureUrl;
 });
 define('simple-auth/utils/get-global-config',  ['exports'], function(__exports__) {
   __exports__['default'] = global.SimpleAuth.Utils.getGlobalConfig;

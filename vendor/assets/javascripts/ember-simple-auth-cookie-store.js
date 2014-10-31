@@ -1,6 +1,6 @@
 (function(global) {
 
-Ember.libraries.register('Ember Simple Auth Cookie Store', '0.6.7');
+Ember.libraries.register('Ember Simple Auth Cookie Store', '0.7.0');
 
 var define, requireModule;
 
@@ -64,18 +64,18 @@ define("simple-auth-cookie-store/configuration",
 
     var defaults = {
       cookieName:           'ember_simple_auth:session',
+      cookieDomain:         null,
       cookieExpirationTime: null
     };
 
     /**
       Ember Simple Auth Cookie Store's configuration object.
 
-      To change any of these values, define a global environment object for Ember
-      Simple Auth and define the values there:
+      To change any of these values, set them on the application's environment
+      object:
 
       ```js
-      window.ENV = window.ENV || {};
-      window.ENV['simple-auth-cookie-store'] = {
+      ENV['simple-auth-cookie-store'] = {
         cookieName: 'my_app_auth_session'
       }
       ```
@@ -85,6 +85,21 @@ define("simple-auth-cookie-store/configuration",
       @module simple-auth/configuration
     */
     __exports__["default"] = {
+
+      /**
+        The domain to use for the cookie, e.g., "example.com", ".example.com"
+        (includes all subdomains) or "subdomain.example.com". If not configured the
+        cookie domain defaults to the domain the session was authneticated on.
+
+        This value can be configured via
+        [`SimpleAuth.Configuration.CookieStore#cookieDomain`](#SimpleAuth-Configuration-CookieStore-cookieDomain).
+
+        @property cookieDomain
+        @type String
+        @default null
+      */
+      cookieDomain: defaults.cookieDomain,
+
       /**
         The name of the cookie the store stores its data in.
 
@@ -145,11 +160,11 @@ define("simple-auth-cookie-store/initializer",
     };
   });
 define("simple-auth-cookie-store/stores/cookie", 
-  ["simple-auth/stores/base","simple-auth/utils/flat-objects-are-equal","./../configuration","exports"],
+  ["simple-auth/stores/base","simple-auth/utils/objects-are-equal","./../configuration","exports"],
   function(__dependency1__, __dependency2__, __dependency3__, __exports__) {
     "use strict";
     var Base = __dependency1__["default"];
-    var flatObjectsAreEqual = __dependency2__["default"];
+    var objectsAreEqual = __dependency2__["default"];
     var Configuration = __dependency3__["default"];
 
     /**
@@ -192,6 +207,21 @@ define("simple-auth-cookie-store/stores/cookie",
       @extends Stores.Base
     */
     __exports__["default"] = Base.extend({
+
+      /**
+        The domain to use for the cookie, e.g., "example.com", ".example.com"
+        (includes all subdomains) or "subdomain.example.com". If not configured the
+        cookie domain defaults to the domain the session was authneticated on.
+
+        This value can be configured via
+        [`SimpleAuth.Configuration.CookieStore#cookieDomain`](#SimpleAuth-Configuration-CookieStore-cookieDomain).
+
+        @property cookieDomain
+        @type String
+        @default null
+      */
+      cookieDomain: null,
+
       /**
         The name of the cookie the store stores its data in.
 
@@ -237,6 +267,7 @@ define("simple-auth-cookie-store/stores/cookie",
       init: function() {
         this.cookieName           = Configuration.cookieName;
         this.cookieExpirationTime = Configuration.cookieExpirationTime;
+        this.cookieDomain         = Configuration.cookieDomain;
         this.syncData();
       },
 
@@ -295,10 +326,11 @@ define("simple-auth-cookie-store/stores/cookie",
         @private
       */
       write: function(value, expiration) {
-        var path = '; path=/';
+        var path    = '; path=/';
+        var domain  = Ember.isEmpty(this.cookieDomain) ? '' : '; domain=' + this.cookieDomain;
         var expires = Ember.isEmpty(expiration) ? '' : '; expires=' + new Date(expiration).toUTCString();
         var secure  = !!this._secureCookies ? ';secure' : '';
-        document.cookie = this.cookieName + '=' + encodeURIComponent(value) + path + expires + secure;
+        document.cookie = this.cookieName + '=' + encodeURIComponent(value) + domain + path + expires + secure;
       },
 
       /**
@@ -307,7 +339,7 @@ define("simple-auth-cookie-store/stores/cookie",
       */
       syncData: function() {
         var data = this.restore();
-        if (!flatObjectsAreEqual(data, this._lastData)) {
+        if (!objectsAreEqual(data, this._lastData)) {
           this._lastData = data;
           this.trigger('sessionDataUpdated', data);
         }
@@ -321,8 +353,8 @@ define("simple-auth-cookie-store/stores/cookie",
 define('simple-auth/stores/base',  ['exports'], function(__exports__) {
   __exports__['default'] = global.SimpleAuth.Stores.Base;
 });
-define('simple-auth/utils/flat-objects-are-equal',  ['exports'], function(__exports__) {
-  __exports__['default'] = global.SimpleAuth.Utils.flatObjectsAreEqual;
+define('simple-auth/utils/objects-are-equal',  ['exports'], function(__exports__) {
+  __exports__['default'] = global.SimpleAuth.Utils.objectsAreEqual;
 });
 define('simple-auth/utils/get-global-config',  ['exports'], function(__exports__) {
   __exports__['default'] = global.SimpleAuth.Utils.getGlobalConfig;
