@@ -25,7 +25,7 @@ task :update do
 		
 		`git add --all`
 		`git commit -am 'update to #{version}'`
-		`git tag -a #{version}`
+		`git tag -a #{version} -m 'update to #{version}'`
 
     `git push`
     `git push --tags`
