@@ -1,0 +1,12 @@
+language: ruby
+rvm:
+- 2.0.0
+deploy:
+  provider: rubygems
+  api_key:
+    secure: k1gPL/aEzmoOaILICsIxPyS3ezao+KYpv4sSoKfVn17uS9XaP6xrSnsgJLx+mpdeaZ+AN7sKdQ2jvG5MQMgOjzuUoz1h/MAwSoVRv5xX3itXpgY5oPhAw6mnH1Lh1JvkG4acNlmcWox+kLDUZJ6tMVT7FyVT/UsiADPZ+1vKpMg=
+  gem: ember_simple_auth-rails
+  on:
+    all_branches: true
+    tags: true
+    repo: doodzik/ember_simple_auth-rails

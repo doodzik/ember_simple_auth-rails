@@ -23,11 +23,12 @@ task :update do
 		new_content = File.open(version_file, "r") { |out| out.read.gsub(/(\d+)\.(\d+)\.(\d+)/, version) }
 		File.open(version_file, 'w') { |file| file.write(new_content) }
 		
-		`git add -A`
+		`git add --all`
 		`git commit -am 'update to #{version}'`
-		`git tag #{version}`
+		`git tag -a #{version}`
 
-		`gem build ember_simple_auth-rails.gemspec`
+    `git push`
+    `git push --tags`
 	end
 end
 
@@ -35,6 +36,8 @@ task :publish do
 	`git push --tags`
 	`git push --follow-tags`
 	version = `git tag`.split.last
+	`gem build ember_simple_auth-rails.gemspec`
 	`gem push ember_simple_auth-rails-#{version}.gem`
 end
 
+task :default => []
