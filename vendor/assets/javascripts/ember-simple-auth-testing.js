@@ -1,6 +1,6 @@
 (function(global) {
 
-Ember.libraries.register('Ember Simple Auth Testing', '0.7.0');
+Ember.libraries.register('Ember Simple Auth Testing', '0.7.2');
 
 var define, requireModule;
 
@@ -111,6 +111,11 @@ define("simple-auth-testing/test-helpers",
         var session = app.__container__.lookup(Configuration.session);
         session.authenticate('simple-auth-authenticator:test');
         return wait();
+      });
+
+      Ember.Test.registerHelper('currentSession', function(app) {
+        var session = app.__container__.lookup(Configuration.session);
+        return session;
       });
 
       Ember.Test.registerAsyncHelper('invalidateSession', function(app) {

@@ -1,6 +1,6 @@
 (function(global) {
 
-Ember.libraries.register('Ember Simple Auth Cookie Store', '0.7.0');
+Ember.libraries.register('Ember Simple Auth Cookie Store', '0.7.2');
 
 var define, requireModule;
 
@@ -291,7 +291,6 @@ define("simple-auth-cookie-store/stores/cookie",
         @return {Object} All data currently persisted in the cookie
       */
       restore: function() {
-
         var data = this.read();
         if (Ember.isEmpty(data)) {
           return {};
@@ -309,7 +308,7 @@ define("simple-auth-cookie-store/stores/cookie",
       */
       clear: function() {
         this.write(null, 0);
-        this._lastData = null;
+        this._lastData = {};
       },
 
       /**
